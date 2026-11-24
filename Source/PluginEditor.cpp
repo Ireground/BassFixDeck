@@ -442,9 +442,15 @@ BassFixDeckEditor::BassFixDeckEditor (BassFixDeckProcessor& p)
     lookAtt  = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (proc.apvts, "lookahead", lookaheadBtn);
     deltaAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (proc.apvts, "delta", deltaBtn);
 
+    // Read the remembered size BEFORE anything can resize the window:
+    // setResizable/setResizeLimits trigger resized() with a temporary size,
+    // which used to overwrite the saved one.
+    const int savedW = juce::jlimit (640, 2000, proc.editorWidth.load());
+    const int savedH = juce::jlimit (400, 1250, proc.editorHeight.load());
     setResizable (true, true);
     setResizeLimits (640, 400, 2000, 1250);
-    setSize (juce::jlimit (640, 2000, proc.editorWidth.load()), juce::jlimit (400, 1250, proc.editorHeight.load()));
+    setSize (savedW, savedH);
+    sizeRestored = true;
     startTimerHz (30);
 }
 
@@ -505,8 +511,11 @@ void BassFixDeckEditor::paint (juce::Graphics& g)
 
 void BassFixDeckEditor::resized()
 {
-    proc.editorWidth.store (getWidth());
-    proc.editorHeight.store (getHeight());
+    if (sizeRestored)
+    {
+        proc.editorWidth.store (getWidth());
+        proc.editorHeight.store (getHeight());
+    }
 
     scale = std::min (getWidth() / 860.0f, getHeight() / 540.0f);
     lnf.scale = scale;

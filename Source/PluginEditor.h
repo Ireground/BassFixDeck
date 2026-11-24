@@ -102,6 +102,7 @@ private:
     juce::TooltipWindow tooltips { this, 600 };
     juce::Rectangle<int> knobPanel;
     float scale = 1.0f;
+    bool sizeRestored = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BassFixDeckEditor)
 };
